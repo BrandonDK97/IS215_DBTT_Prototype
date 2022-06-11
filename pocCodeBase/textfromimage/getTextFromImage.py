@@ -13,8 +13,8 @@ with open("Screenshot 2022-03-26 201627.png", "rb") as image_file:
 
 jsonData = json.dumps(data)
 
-url = 'https://xt1q9et1m1.execute-api.us-east-1.amazonaws.com/default/getTextFromImage'
+url = 'e'
 
-req = requests.post(url,headers={"x-api-key": "Et1TGGiU5h2Laoj6CJ2an70dpL1VqauC0V49zha7", "Content-Type": "application/json"} ,json=jsonData)
+req = requests.post(url,headers={"x-api-key": "", "Content-Type": "application/json"} ,json=jsonData)
 
 print(req)
