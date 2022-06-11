@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- CSS only -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+  integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Engine Prediction</title>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="background-color: #22446E !important;">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="./">MERRYTIME</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <h3 class="text-center mt-3">Predict Ship Engine Usage</h3>
+  <h6 class="text-center my-5">Using historical data and new engine data, we are able to gather the optimised usage of
+    ship engines</h6>
+
+  <div class="container align-items-center text-center mt-5">
+    <div class="row align-items-center">
+      <div class="col">
+        <div class="d-grid gap-2">
+          <button type="button" name="" id="" class="btn btn-primary" onclick="oldEngineData()"
+            style="background-color: #22446E !important;">View Old Engine Data</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="d-grid gap-2">
+          <button type="button" name="" id="" class="btn btn-primary" onclick="newEngineData()"
+            style="background-color: #22446E !important;">View new Engine Data</button>
+        </div>
+      </div>
+      <br>
+      <div class='row align-items-center'>
+        <div id="shipData" class="mt-3 mt-5">
+        </div>
+      </div>
+      <div class="d-grid gap-2">
+        <button type="button" name="" id="" class="btn btn-primary " onclick="askmodellabel()"
+          style="background-color: #22446E !important;">Analyse Data</button>
+      </div>
+    </div>
+    <div class="row mb-5">
+      <p id="outcome"></p>
+    </div>
+  </div>
+
+  <!-- <footer class="container-fluid py-2 bg-dark text-light"
+    style="background-color: #22446E !important; overflow: hidden; position: fixed; bottom: 0; width: 100%;">
+    <div class="row">
+      <div class="col-10 col-md">
+        MERRYTIME
+        <small class="d-block text-muted">&copy; 2022</small>
+      </div>
+
+      <div class="col-2 col-md">
+        <p>MerryTime POC to test AI and Analytics Capabilities</p>
+      </div>
+    </div>
+  </footer> -->
+
+</body>
+<!-- JavaScript Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.1/axios.min.js"
+  integrity="sha512-bPh3uwgU5qEMipS/VOmRqynnMXGGSRv+72H/N260MQeXZIK4PG48401Bsby9Nq5P5fz7hy5UGNmC/W1Z51h2GQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+
+  category = ['op_setting_1', 'op_setting_2', 'op_setting_3', 'sensor_1', 'sensor_2', 'sensor_3', 'sensor_4', 'sensor_5', 'sensor_6', 'sensor_7', 'sensor_8', 'sensor_9', 'sensor_10', 'sensor_11', 'sensor_12', 'sensor_13', 'sensor_14', 'sensor_15', 'sensor_16', 'sensor_17', 'sensor_18', 'sensor_19', 'sensor_20', "sensor_21"]
+  newEngine = [25.0074, 0.62, 60, 462.54, 536.84, 1256.52, 1043.97, 7.05, 9.02, 175.29, 1915.47, 8019.94, 0.94, 36.7, 164.75, 2028.38, 7875.47, 10.885, 0.02, 306, 1915, 84.93, 14.35, 8.4712, 339]
+  oldEngine = [25.0028,0.6213,60,462.54,536.82,1268.11,1044.44,7.05,9.02,176.17,1915.5,8029.36,0.94,36.71,164.37,2028.44,7881.78,10.8878,0.02,307,1915,84.93,14.43,8.5087,197]
+  // oldEngine = [42.0015,0.8418,100,445.0,550.05,1366.33,1142.79,3.91,5.72,138.33,2211.89,8334.42,1.02,42.71,130.32,2388.01,8089.04,9.4409,0.02,334,2212,100.0,10.63,6.3104]
+  // oldEngine = [19.9995, 0.7, 100, 491.19, 608.1, 1480.61, 1266.5, 9.35, 13.66, 333.29, 2324.1, 8733.08, 1.07, 44.66, 314.14, 2388.27, 8065.55, 9.2889, 0.03, 367, 2324, 100.0, 24.33, 14.4808]
+  oldEngineData()
+
+  function oldEngineData() {
+    tmpData = oldEngine
+    tableHTML = ""
+    for (let i = 0; i < category.length; i = i + 3) {
+      catData = category.slice(i, i + 3)
+      engineData = tmpData.slice(i, i + 3)
+
+      thead = ""
+      tbody = ""
+
+      for (data of catData) {
+        thead += `<th scope="col">` + data + `</th>`
+      }
+
+      for (data of engineData) {
+        tbody += `<th scope="col">` + data + `</th>`
+      }
+      tableHTML += `<table class="table table-bordered table-primary">
+                <thead>
+                  <tr>
+                    `+ thead + `
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    `+ tbody + `
+                  </tr>
+                </tbody>
+              </table>`
+    }
+    document.getElementById('shipData').innerHTML = tableHTML
+    nowSelected = "old"
+  }
+
+  function newEngineData() {
+    tmpData = newEngine
+    tableHTML = ""
+    for (let i = 0; i < category.length; i = i + 3) {
+      catData = category.slice(i, i + 3)
+      engineData = tmpData.slice(i, i + 3)
+
+      thead = ""
+      tbody = ""
+
+      for (data of catData) {
+        thead += `<th scope="col">` + data + `</th>`
+      }
+
+      for (data of engineData) {
+        tbody += `<th scope="col">` + data + `</th>`
+      }
+      tableHTML += `<table class="table table-bordered table-primary">
+                <thead>
+                  <tr>
+                    `+ thead + `
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    `+ tbody + `
+                  </tr>
+                </tbody>
+              </table>`
+    }
+    document.getElementById('shipData').innerHTML = tableHTML
+    nowSelected = "new"
+  }
+
+  function askmodellabel() {
+    console.log('running')
+    if (nowSelected == "new") {
+      console.log(newEngine)
+      axios.post("/enginePredictionModel", [category, newEngine])
+        .then(function (response) {
+          console.log(response)
+          res = response.data
+          if(res == 'y'){
+            document.getElementById('outcome').innerHTML ='Ship is predicted to <span style="color:red;font-weight: bold;">fail</span> within 50 days from now (Accuracy 89.53%)'
+          }else{
+            document.getElementById('outcome').innerHTML ='Ship is predicted to <span style="color:green;font-weight: bold;">not fail</span> within 50 days from now (Accuracy 89.53%)'
+          }
+        })
+    } else {
+      console.log(oldEngine)
+      axios.post("/enginePredictionModel", [category, oldEngine])
+        .then(function (response) {
+          console.log(response)
+          res = response.data
+          if(res == 'y'){
+            document.getElementById('outcome').innerHTML ='Ship is predicted to <span style="color:red;font-weight: bold;">fail</span> within 50 days from now (Accuracy 89.53%)'
+          }else{
+            document.getElementById('outcome').innerHTML ='Ship is predicted to <span style="color:green;font-weight: bold;">not fail</span> within 50 days from now (Accuracy 89.53%)'
+          }
+        })
+    }
+  }
+
+
+</script>
+
+</html>
